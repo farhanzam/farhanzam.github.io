@@ -1,0 +1,241 @@
+<head>
+    <script>
+        var currentImageIndex = 0;
+        var inArrowOp = false;
+        var HELP_TEXT = "Hover over a dot to display info text";
+        // Once you find an image, go to pixspy.com to find the coordinates of where you want to place the dots
+        var IMAGES = {
+            0: {
+                imageURL: "/Users/farhanzaman/Desktop/image000000.png",
+                width: 1600,
+                height: 900,
+                imageCoords: [
+                    [979,267, "17 April 1492: Columbus signs an agreement with Ferdinand and Isabella of Spain, granting him the title of Admiral, the office of Viceroy and 10% of all to be gained from his expedition to him and heirs, and the right to invest ⅛ of the funds from the crown himself. The monarchs agree. (350)"],
+                    [540, 356, "12 October 1492: In the early morning hours, a member of Columbus’s crew spots land – although Columbus lates claims that he himself was the first to see it – in what was most likely the present-day Bahamas for the first time since departing from the Canary Islands off the coast of Africa. Later reports by Columbus’s son report that he landed on the island with royal banners, flags, and crosses in order to declare possession under the proper ceremony of the time."],
+                    [955,246, "4 March 1493: Columbus’s ships arrive back in Europe off the coast of Lisbon. He sends word to Ferdinand of his “discovery,” but in announcing his presence to King João of Portugal, he declares that the lands are Portuguese possessions under both prior treaty and the papal bull Aeterni Regis. In the days that followed, Ferdinand began working with his Bishops in Rome to circumvent these claims and secure papal recognition of Spanish possession of the lands Columbus saw."],
+                    [1046,272, "3 May 1493: Following two months of politics in Barcelona and in Rome, Pope Alexander VI issues the apostolic letter Inter Caetera secretly to the court of Ferdinand, establishing Spanish territory in what would become the New World on the latitude line 100 Portuguese 18 to a degree leagues west of the islands of Azores (approximately 380 American miles). Three months later, this letter is made public and declared as the now famous papal bull, Inter Caetera."],
+                    [590, 378, "25 September 1493: Columbus sets sail for the second time to the New World, this time with at least 17 ships, cavalry, friars, and the supplies necessary to establish a permanent colony, arriving in what would be called Hispaniola in late November. Although resistance by Natives and other challenges inhibited the success of this second mission, later missions led to the successful permanent settlement of Santo Domingo by 1496."],
+                    [977, 241, "7 June 1494: The Treaty of Tordesillas is signed in Spain to be ratified by the Portuguese three months later, moving the Inter Caetera line of demarcation significantly to the west. Both the negotiations and signing of this treaty were completed in the absence of the Catholic Church, creating a legal inter-state agreement that froze out Catholic and religious interests in the determination of New World property. "]
+                ] 
+            },
+            1: {
+                imageURL: "https://curtiswrightmaps.com/wp-content/uploads/map_02-02-22_300dpi_20.49x24.15_inv3396c.jpg",
+                width: 2250,
+                height: 1910,
+                imageCoords: [
+                    [974, 520, "1774: Value in humans held in slavery across the American colonies was about £21M, or about $3.2B in today's dollars."],
+                    [1048, 494, "1862: Homestead Act proclaimed during Civil War, incentivizing white Americans to venture west and settle on free land dispossessed of Native Americans by United States government."],
+                    [976, 570, "1865: Gen. Sherman issues Special Field Order No. 15 near the end of the American Civil War, promising freedmen 40 acres of land upon Union victory."],
+                    [1700, 132, "1689: Locke's Second Treatise is published, outlining a theory of labor and property that would come to dominate modern property theory and jurisprudence and substantiate the subjugation of Native Americans in colonial property regimes in America."],
+                    [755, 467, "1845: The term 'Manifest Destiny' is first used to describe the perceived duty of white Americans to conquer and 'Settle' the American West under providence and the Christian God's good graces."]
+                ] 
+            },
+            2: {
+                imageURL: "/Users/farhanzaman/Desktop/imagepng_0.png",
+                width: 966,
+                height: 543,
+                imageCoords: [
+                    [623, 239, ""],
+                    [920, 69, ""],
+                    [184, 501, ""],
+                    [483, 324, ""],
+                    [932, 327, ""],
+                ]
+                
+            },
+            3: {
+                imageURL: "/Users/farhanzaman/Desktop/Screen Shot 2023-06-07 at 8.22.54 PM.png",
+                width: 1172,
+                height: 1328,
+                imageCoords: [ ]
+            }
+        }
+
+        function scale(coordX, coordY, originalImageWidth, originalImageHeight) {
+            let containerWidth = window.innerWidth;
+            let containerHeight = window.innerHeight * .8;
+            let imageWidth = 0, imageHeight = 0;
+            if (originalImageWidth > originalImageHeight) { // image is wider than it is tall
+                imageHeight = containerHeight;
+                imageWidth = originalImageWidth * (imageHeight / originalImageHeight);
+                if (imageWidth > containerWidth) {
+                    imageWidth = containerWidth;
+                    imageHeight = originalImageHeight * (imageWidth / originalImageWidth);
+                }
+            } else { // image is taller than it is wide
+                imageWidth = containerWidth;
+                imageHeight = originalImageHeight * (imageWidth / originalImageWidth);
+                if (imageHeight > containerHeight) {
+                    imageHeight = containerHeight;
+                    imageWidth = originalImageWidth * (imageHeight / originalImageHeight);
+                }
+            }
+            let offsetX = (containerWidth - imageWidth) / 2 - 10;
+            let offsetY = (containerHeight - imageHeight) / 2 - 10;
+            let scaledCoordX = offsetX + (coordX * imageWidth / originalImageWidth);
+            let scaleCoordY = offsetY + (coordY * imageHeight / originalImageHeight);
+            return [scaledCoordX, scaleCoordY];
+        }
+
+        function show(imageIndex, delay) {
+            // remove old dots 
+            let oldDots = document.getElementsByClassName("info-dot-non-proto");
+            while(oldDots.length) oldDots[0].remove();
+            // show new image
+            let currImage = IMAGES[imageIndex];
+            document.getElementById("slider-image").style.backgroundImage = `url('${currImage.imageURL}')`;
+            let sliderContainer = document.getElementById("slider-container");
+            // create new dots
+            const showFunc = () => {
+                currImage.imageCoords.forEach(function(coordBox) {
+                    // set up the dot
+                    let dot = document.getElementById("info-dot-proto").cloneNode();
+                    dot.id = "info-dot-non-proto";
+                    dot.className += " info-dot-non-proto";
+                    let scaledCoords = scale(coordBox[0], coordBox[1], currImage.width, currImage.height);
+                    dot.style.left = scaledCoords[0];
+                    dot.style.top = scaledCoords[1];
+                    dot.style.display = "block";
+                    const textContainer = document.getElementById("text-box");
+                    dot.onmouseover = () => {
+                        textContainer.style.opacity = 0;
+                        setTimeout(() => {
+                            textContainer.innerHTML = coordBox[2];
+                            textContainer.style.opacity = 1;
+                        }, 250);
+                    };
+                    dot.onmouseout = () => {
+                        textContainer.style.opacity = 0;
+                        setTimeout(() => {
+                            textContainer.innerHTML = HELP_TEXT;
+                            textContainer.style.opacity = 1;
+                        }, 250);
+                    };
+                    sliderContainer.insertBefore(dot, sliderContainer.lastChild);
+                });
+                inArrowOp = false;
+            };
+            if (delay == null || delay == undefined || delay === 0)
+                showFunc();
+            else 
+                setTimeout(showFunc, delay);
+        }
+
+        function nextArrow() {
+            const numImages = Object.keys(IMAGES).length - 1;
+            if (inArrowOp || currentImageIndex == numImages) return;
+            inArrowOp = true;
+            currentImageIndex += 1;
+            currentImageIndex = Math.min(numImages, currentImageIndex);
+            show(currentImageIndex, 500);
+
+        }
+
+        function prevArrow() {
+            if (inArrowOp || currentImageIndex == 0) return;
+            inArrowOp = true;
+            currentImageIndex -= 1;
+            currentImageIndex = Math.max(0, currentImageIndex);
+            show(currentImageIndex, 500);
+        }
+
+        document.addEventListener("DOMContentLoaded", function(event) { 
+            // set up the page
+            document.getElementById("text-box").innerHTML = HELP_TEXT;
+            // preload and cache the images
+            Object.keys(IMAGES).forEach(function(key) {
+                (new Image()).src  = IMAGES[key].imageURL;
+            })
+            // show the first image 
+            show(currentImageIndex, 0);
+            window.onresize = () => show(currentImageIndex, 0);
+        });
+    </script>
+    <style>
+        p{text-align: left}
+        body { 
+            margin:0; 
+            padding:0; 
+            background-color:#b89c85;
+        }
+        #slider-container {
+            height:80vh;
+            width:100vw;
+            position:relative;
+        }
+        .arrow {
+            position:absolute;
+            top:50%;
+            transform:translate(0, -50%);
+            height:50px;
+            width:50px;
+            cursor:pointer;
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+            background-color:#F9DC5C;
+            transition:background-color .5s ease-in-out;
+            line-height: 50px;
+            user-select: none;
+        }
+        .arrow:hover{
+            background-color:#F4FDD9;
+        }
+        .title {
+            height:10vh;
+            width:100vw;
+            text-align:center;
+            display: table-cell;
+            vertical-align: middle;
+            font-size:25pt;
+        }
+        #slider-image {
+            position:relative;
+            width:100%;
+            height:100%;
+            background-size:contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition:background-image .5s ease-in-out;
+        }
+        #text-box {
+            height:calc(10vh - 3px);
+            width:100vw;
+            text-align:center;
+            display: table-cell;
+            vertical-align: middle;
+            font-size:15pt;
+            transition: opacity .25s ease-in-out;
+        }
+        .info-dot {
+            border-radius:50%;
+            background-color:rgb(249, 220, 92, 1);
+            height:15px;
+            width:15px;
+            display:none;
+            position:absolute;
+            z-index: 100;
+            border:2px solid #591F0A;
+            transition:all .5s ease-in-out;
+            cursor:pointer;
+        }
+        .info-dot:hover {
+            background-color: rgb(194, 234, 189, .5);
+            transform: scale(1.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="title">
+        Inter Caetera Interactive Map
+    </div>
+    <div id="slider-container">
+        <div id="slider-image">
+        </div>
+        <div class="arrow" style="right:0;" onclick="nextArrow()"><b>></b></div>
+        <div class="arrow" style="left:0;" onclick="prevArrow()"><b><</b></div>
+    </div>
+    <div id="text-box">
+    </div>
+    <div class="info-dot" id="info-dot-proto"></div>
+</body>
